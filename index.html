@@ -1,11 +1,708 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Todo (Static)</title>
+    <style>
+        :root {
+            --bg1: #0b1020;
+            --bg2: #111a33;
+            --card: rgba(255, 255, 255, .08);
+            --card2: rgba(255, 255, 255, .06);
+            --text: #eaf0ff;
+            --muted: rgba(234, 240, 255, .7);
+            --line: rgba(255, 255, 255, .12);
+            --shadow: 0 18px 60px rgba(0, 0, 0, .45);
+            --primary: #7c5cff;
+            --primary2: #22c55e;
+            --danger: #ff4d6d;
+            --warning: #f59e0b;
+            --radius: 18px;
+            --radius2: 14px;
+            --focus: 0 0 0 4px rgba(124, 92, 255, .28);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            color: var(--text);
+            min-height: 100vh;
+            background:
+                radial-gradient(1100px 700px at 15% 10%, rgba(124, 92, 255, .35), transparent 60%),
+                radial-gradient(900px 600px at 85% 30%, rgba(34, 197, 94, .20), transparent 55%),
+                linear-gradient(180deg, var(--bg1), var(--bg2));
+            padding: 28px 16px;
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .title h1 {
+            font-size: 22px;
+            margin: 0;
+            letter-spacing: .2px;
+            font-weight: 760;
+        }
+
+        .title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .chip {
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--card), var(--card2));
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+        }
+
+        .app {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .05));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .app-inner {
+            padding: 18px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 240px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .14);
+        }
+
+        .field input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .field input::placeholder {
+            color: rgba(234, 240, 255, .45)
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 700;
+            color: var(--text);
+            background: linear-gradient(135deg, rgba(124, 92, 255, 1), rgba(124, 92, 255, .75));
+            box-shadow: 0 10px 26px rgba(124, 92, 255, .25);
+            transition: transform .15s ease, filter .15s ease;
+            user-select: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.02)
+        }
+
+        .btn:active {
+            transform: translateY(0px);
+            filter: brightness(.98)
+        }
+
+        .btn:focus-visible {
+            box-shadow: var(--shadow), var(--focus)
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid var(--line);
+            box-shadow: none;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 750;
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: rgba(255, 77, 109, .14);
+            border: 1px solid rgba(255, 77, 109, .35);
+            box-shadow: none;
+            color: #ffd6df;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--line);
+            box-shadow: none;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 750;
+            color: var(--text);
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 6px 0 16px;
+        }
+
+        .seg {
+            display: inline-flex;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .12);
+            align-items: center;
+        }
+
+        .seg button {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--muted);
+            background: transparent;
+            transition: background .15s ease, color .15s ease, transform .15s ease;
+        }
+
+        .seg button:hover {
+            transform: translateY(-1px);
+            color: rgba(234, 240, 255, .9)
+        }
+
+        .seg button[aria-pressed="true"] {
+            background: linear-gradient(135deg, rgba(124, 92, 255, .95), rgba(124, 92, 255, .55));
+            color: var(--text);
+            box-shadow: 0 14px 30px rgba(124, 92, 255, .18);
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 6px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, .08);
+            border: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .todo {
+            display: grid;
+            grid-template-columns: 26px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03));
+        }
+
+        .todo[aria-disabled="true"] {
+            opacity: .7
+        }
+
+        .check {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, .12);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: transform .12s ease, background .12s ease, border-color .12s ease;
+        }
+
+        .check:hover {
+            transform: scale(1.03)
+        }
+
+        .check input {
+            display: none
+        }
+
+        .check .tick {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            background: transparent;
+            transform: scale(.5);
+            opacity: 0;
+            transition: opacity .12s ease, transform .12s ease, background .12s ease;
+        }
+
+        .todo.completed .check {
+            border-color: rgba(34, 197, 94, .55)
+        }
+
+        .todo.completed .check .tick {
+            background: rgba(34, 197, 94, .95);
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .todo-main {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .todo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .text {
+            font-weight: 760;
+            letter-spacing: .1px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .todo.completed .text {
+            color: rgba(234, 240, 255, .75);
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            text-decoration-color: rgba(34, 197, 94, .65);
+        }
+
+        .badge {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .14);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .todo.completed .badge {
+            border-color: rgba(34, 197, 94, .35);
+            background: rgba(34, 197, 94, .12);
+            color: #b7f7d0;
+        }
+
+        .todo.incomplete .badge {
+            border-color: rgba(245, 158, 11, .35);
+            background: rgba(245, 158, 11, .12);
+            color: #ffe5b4;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .edit-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .edit-area input {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .16);
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+        }
+
+        .edit-area input:focus-visible {
+            box-shadow: var(--focus)
+        }
+
+        .status-select {
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .16);
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .status-select:focus-visible {
+            box-shadow: var(--focus)
+        }
+
+        .empty {
+            padding: 26px 14px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty strong {
+            color: rgba(234, 240, 255, .88)
+        }
+
+        @media (max-width: 680px) {
+            .todo {
+                grid-template-columns: 26px 1fr;
+                grid-template-rows: auto auto
+            }
+
+            .todo-actions {
+                grid-column: 1 / -1;
+                justify-content: flex-end
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div>changes done by rajusoni</div>
+    <div class="wrap">
+        <div class="header">
+            <div class="title">
+                <h1>Todo</h1>
+                <p>Add, delete, and update tasks. This is a <strong>static</strong> in-memory app (no localStorage/DB).
+                </p>
+            </div>
+            <div class="chip" id="statsChip">0 tasks • 0 complete</div>
+        </div>
+
+        <div class="app">
+            <div class="app-inner">
+                <div class="controls">
+                    <div class="field" role="group" aria-label="Add todo">
+                        <input id="todoInput" type="text" placeholder="What needs to be done?" maxlength="140"
+                            autocomplete="off" />
+                    </div>
+                    <button class="btn" id="addBtn" type="button">Add Todo</button>
+                </div>
+
+                <div class="filters" aria-label="Filter tasks">
+                    <div class="seg" role="group" aria-label="Status filters">
+                        <button type="button" data-filter="all" aria-pressed="true">All</button>
+                        <button type="button" data-filter="incomplete" aria-pressed="false">Incomplete</button>
+                        <button type="button" data-filter="complete" aria-pressed="false">Complete</button>
+                    </div>
+                </div>
+
+                <div id="list" class="list" aria-live="polite"></div>
+                <div id="empty" class="empty" hidden>
+                    <strong>No todos yet.</strong><br />Add something above to get started.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Static in-memory store (resets on refresh)
+         */
+        const todos = [];
+        let nextId = 1;
+
+        const elInput = document.getElementById('todoInput');
+        const elAddBtn = document.getElementById('addBtn');
+        const elList = document.getElementById('list');
+        const elEmpty = document.getElementById('empty');
+        const elStatsChip = document.getElementById('statsChip');
+
+        const FILTERS = {
+            all: 'all',
+            incomplete: 'incomplete',
+            complete: 'complete',
+        };
+
+        let currentFilter = FILTERS.all;
+
+        function uid() {
+            return nextId++;
+        }
+
+        function normalizeText(s) {
+            return (s ?? '').toString().trim();
+        }
+
+        function formatStatus(todo) {
+            return todo.completed ? 'complete' : 'incomplete';
+        }
+
+        function updateStats() {
+            const total = todos.length;
+            const completeCount = todos.filter(t => t.completed).length;
+            elStatsChip.textContent = `${total} task${total === 1 ? '' : 's'} • ${completeCount} complete`;
+        }
+
+        function render() {
+            const visible = todos.filter(t => {
+                if (currentFilter === FILTERS.all) return true;
+                if (currentFilter === FILTERS.complete) return t.completed;
+                if (currentFilter === FILTERS.incomplete) return !t.completed;
+                return true;
+            });
+
+            elList.innerHTML = '';
+
+            elEmpty.hidden = visible.length !== 0;
+
+            for (const todo of visible) {
+                elList.appendChild(renderTodoCard(todo));
+            }
+
+            updateStats();
+        }
+
+        function setFilter(next) {
+            currentFilter = next;
+            const buttons = document.querySelectorAll('[data-filter]');
+            for (const btn of buttons) {
+                const isActive = btn.getAttribute('data-filter') === next;
+                btn.setAttribute('aria-pressed', String(isActive));
+            }
+            render();
+        }
+
+        function renderTodoCard(todo) {
+            const card = document.createElement('div');
+            card.className = `todo ${todo.completed ? 'completed' : 'incomplete'}`;
+            card.dataset.id = String(todo.id);
+
+            // Check
+            const checkWrap = document.createElement('label');
+            checkWrap.className = 'check';
+            checkWrap.title = 'Toggle complete/incomplete';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = !!todo.completed;
+            checkbox.addEventListener('change', () => {
+                todo.completed = checkbox.checked;
+                render();
+            });
+
+            const tick = document.createElement('span');
+            tick.className = 'tick';
+            checkWrap.appendChild(checkbox);
+            checkWrap.appendChild(tick);
+
+            // Main
+            const main = document.createElement('div');
+            main.className = 'todo-main';
+
+            const row = document.createElement('div');
+            row.className = 'todo-row';
+
+            const text = document.createElement('div');
+            text.className = 'text';
+            text.textContent = todo.text;
+
+            const badge = document.createElement('div');
+            badge.className = 'badge';
+            badge.textContent = todo.completed ? 'Complete' : 'Incomplete';
+
+            row.appendChild(text);
+            row.appendChild(badge);
+
+            // Edit area (hidden by default)
+            const editArea = document.createElement('div');
+            editArea.className = 'edit-area';
+            editArea.hidden = true;
+
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.maxLength = 140;
+            editInput.value = todo.text;
+            editInput.placeholder = 'Edit todo...';
+
+            const statusSelect = document.createElement('select');
+            statusSelect.className = 'status-select';
+            statusSelect.innerHTML = `
+        <option value="incomplete">Incomplete</option>
+        <option value="complete">Complete</option>
+      `;
+            statusSelect.value = todo.completed ? 'complete' : 'incomplete';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.className = 'btn-secondary';
+            saveBtn.textContent = 'Save';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn-ghost';
+            cancelBtn.textContent = 'Cancel';
+
+            editArea.appendChild(editInput);
+            editArea.appendChild(statusSelect);
+            editArea.appendChild(saveBtn);
+            editArea.appendChild(cancelBtn);
+
+            main.appendChild(row);
+            main.appendChild(editArea);
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.className = 'todo-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'btn-secondary';
+            editBtn.textContent = 'Edit';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'btn-secondary btn-danger';
+            deleteBtn.textContent = 'Delete';
+
+            editBtn.addEventListener('click', () => {
+                // Enter edit mode
+                editArea.hidden = false;
+                row.hidden = true;
+                editBtn.disabled = true;
+                deleteBtn.disabled = true;
+                card.setAttribute('aria-disabled', 'true');
+                editInput.focus();
+                editInput.select();
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                editArea.hidden = true;
+                row.hidden = false;
+                editBtn.disabled = false;
+                deleteBtn.disabled = false;
+                card.removeAttribute('aria-disabled');
+
+                // reset controls
+                editInput.value = todo.text;
+                statusSelect.value = todo.completed ? 'complete' : 'incomplete';
+            });
+
+            saveBtn.addEventListener('click', () => {
+                const newText = normalizeText(editInput.value);
+                if (!newText) {
+                    editInput.focus();
+                    return;
+                }
+                todo.text = newText;
+                todo.completed = statusSelect.value === 'complete';
+
+                editArea.hidden = true;
+                row.hidden = false;
+                editBtn.disabled = false;
+                deleteBtn.disabled = false;
+                card.removeAttribute('aria-disabled');
+
+                render();
+            });
+
+            // Keyboard support in edit mode
+            editInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveBtn.click();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelBtn.click();
+                }
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                const idx = todos.findIndex(t => t.id === todo.id);
+                if (idx !== -1) todos.splice(idx, 1);
+                render();
+            });
+
+            actions.appendChild(editBtn);
+            actions.appendChild(deleteBtn);
+
+            card.appendChild(checkWrap);
+            card.appendChild(main);
+            card.appendChild(actions);
+
+            return card;
+        }
+
+        function addTodo() {
+            const text = normalizeText(elInput.value);
+            if (!text) {
+                elInput.focus();
+                return;
+            }
+            todos.unshift({ id: uid(), text, completed: false });
+            elInput.value = '';
+            render();
+            elInput.focus();
+        }
+
+        elAddBtn.addEventListener('click', addTodo);
+        elInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTodo();
+            }
+        });
+
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => setFilter(btn.getAttribute('data-filter')));
+        });
+
+        // Initial render
+        render();
+    </script>
 </body>
+
 </html>
